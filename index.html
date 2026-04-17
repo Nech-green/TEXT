@@ -1,44 +1,247 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinBoard v2</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>FinBoard v2 - Full Production</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <style>
+        :root{--fb:'Heebo',sans-serif;--fn:'Rubik',sans-serif;--r:12px;--rs:7px;--t:.2s ease}
+        [data-theme="dark"]{--b0:#060910;--b1:#0d1117;--b2:#161b26;--bH:#252d3d;--c0:#f0f4f8;--c1:#c9d1d9;--c2:#8b949e;--c3:#6e7681;--bd:rgba(255,255,255,.06);--bs:rgba(255,255,255,.12);--ac:#e5a90a;--ad:rgba(229,169,10,.12);--at:#fcd34d;--gn:#3fb950;--gd:rgba(63,185,80,.12);--rd:#f85149;--rdd:rgba(248,81,73,.1);--bl:#58a6ff;--bld:rgba(88,166,255,.1);--pr:#bc8cff;--prd:rgba(188,140,255,.1);--or:#f0883e;--inp:#0d1117;--ov:rgba(6,9,15,.8);--gc:rgba(255,255,255,.04)}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--fb);background:var(--b0);color:var(--c0);min-height:100vh;transition:background var(--t),color var(--t)}
+        .H{position:sticky;top:0;z-index:100;background:var(--b1);border-bottom:1px solid var(--bd);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(16px)}.Lo{display:flex;align-items:center;gap:7px}.Lm{width:30px;height:30px;background:linear-gradient(135deg,var(--ac),#d4960d);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#000}.Ln{font-family:var(--fn);font-weight:800;font-size:16px}.Ha{display:flex;gap:4px;align-items:center}
+        .sd{width:8px;height:8px;border-radius:50%;margin-left:4px}.sd-on{background:var(--gn)}.sd-off{background:var(--rd)}
+        .B{font-family:var(--fb);padding:4px 8px;border-radius:var(--rs);border:1px solid var(--bd);background:var(--b2);color:var(--c1);cursor:pointer;font-size:10px;font-weight:500;transition:all var(--t);display:inline-flex;align-items:center;gap:3px;white-space:nowrap}.B:hover{background:var(--bH)}.Ba{background:var(--ac);color:#000;border-color:var(--ac);font-weight:600}.Bd{color:var(--rd)}.Bd:hover{background:var(--rdd)}
+        .N{display:flex;gap:0;padding:1px 16px;background:var(--b1);border-bottom:1px solid var(--bd);overflow-x:auto}.N button{padding:6px 8px;font-size:9.5px;font-weight:500;color:var(--c2);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:var(--fb);white-space:nowrap}.N button:hover{color:var(--c0)}.N button.on{color:var(--at);border-bottom-color:var(--ac);font-weight:600}
+        .M{padding:12px 16px 40px;max-width:1300px;margin:0 auto}.P{display:none;animation:fi .2s}.P.on{display:block}@keyframes fi{from{opacity:0}to{opacity:1}}
+        .TF{display:flex;gap:2px;margin-bottom:10px;flex-wrap:wrap;align-items:center}.TF .B.act{background:var(--ac);color:#000;border-color:var(--ac)}
+        .CG{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-bottom:12px}.CD{background:var(--b1);border:1px solid var(--bd);border-radius:var(--r);padding:10px;position:relative;overflow:hidden}.CD:hover{border-color:var(--bs)}.CS{position:absolute;top:0;right:0;left:0;height:2px}.CL{font-size:8px;color:var(--c3);margin-bottom:2px}.CV{font-family:var(--fn);font-size:15px;font-weight:700;letter-spacing:-.3px}.CC{font-size:8px;margin-top:1px}.up{color:var(--gn)}.dn{color:var(--rd)}
+        .CR{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.CR.f{grid-template-columns:1fr}.CB{background:var(--b1);border:1px solid var(--bd);border-radius:var(--r);padding:12px}.CH{font-size:10px;font-weight:600;margin-bottom:6px}.CW{position:relative;height:220px}.CW.t{height:250px}
+        .TB{background:var(--b1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:10px}.TT{padding:8px 12px 0;font-size:10px;font-weight:600}.TS{overflow-x:auto}table{width:100%;border-collapse:collapse}th{padding:5px 6px;text-align:right;font-size:8px;font-weight:600;color:var(--c3);border-bottom:1px solid var(--bd);white-space:nowrap;background:var(--b2)}td{padding:5px 6px;font-size:9.5px;font-family:var(--fn);border-bottom:1px solid var(--bd);white-space:nowrap}tr:hover td{background:var(--bH)}.tn{font-family:var(--fb);font-weight:600;font-size:9px}
+        .E{background:var(--b1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px}.ET{font-size:13px;font-weight:700;font-family:var(--fn);margin-bottom:1px}.ES{font-size:9px;color:var(--c2);margin-bottom:10px}
+        .FG{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:6px}.FR{display:flex;flex-direction:column;gap:1px}.FL{font-size:8px;font-weight:600;color:var(--c2)}.FI{padding:5px 7px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--inp);color:var(--c0);font-family:var(--fn);font-size:11px;font-weight:500;transition:all var(--t);direction:ltr;text-align:right}.FI:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 2px var(--ad)}.FI::placeholder{color:var(--c3)}select.FI{direction:rtl;text-align:right;cursor:pointer;font-family:var(--fb)}
+        .FA{margin-top:8px;display:flex;gap:4px;align-items:center;flex-wrap:wrap}.SI{font-size:9px;color:var(--gn);opacity:0;transition:opacity .3s}.SI.sh{opacity:1}
+        .LI{margin-top:6px}.LT{display:flex;align-items:center;gap:3px;padding:4px 6px;background:var(--b2);border-radius:var(--rs);margin-bottom:2px;font-size:9.5px}.LT .ld{color:var(--c3);font-size:8px;min-width:38px}.LT .lt{flex:1}.LT .lv{font-family:var(--fn);font-weight:600}
+        .LT .tg{font-size:7px;padding:1px 3px;border-radius:2px}.tg-g{background:var(--gd);color:var(--gn)}.tg-r{background:var(--rdd);color:var(--rd)}.tg-b{background:var(--bld);color:var(--bl)}.tg-p{background:var(--prd);color:var(--pr)}.tg-o{background:rgba(240,136,62,.12);color:var(--or)}
+        .TX{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px;margin-bottom:10px}
+        .TXC{background:var(--b1);border:1px solid var(--bd);border-radius:var(--r);padding:10px}
+        .TXC h4{font-family:var(--fn);font-size:10px;margin-bottom:5px}
+        .TXR{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--bd);font-size:9px}.TXR:last-child{border:none;font-weight:600}
+        .login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:14px;text-align:center}
+        .login-btn{padding:10px 24px;border-radius:10px;border:1px solid var(--bs);background:var(--b1);color:var(--c0);cursor:pointer;font-family:var(--fb);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .MO{position:fixed;inset:0;background:var(--ov);z-index:200;display:none;align-items:center;justify-content:center}.MO.op{display:flex}.MD{background:var(--b1);border:1px solid var(--bs);border-radius:var(--r);padding:16px;max-width:420px;width:90%;max-height:80vh;overflow-y:auto}
+        .tip{background:var(--ad);border:1px solid rgba(229,169,10,.2);border-radius:var(--rs);padding:6px 8px;font-size:8px;color:var(--at);margin-bottom:8px;line-height:1.5}
+        .badge{display:inline-block;font-size:7px;padding:1px 4px;border-radius:3px;font-weight:600}.badge-new{background:var(--gd);color:var(--gn)}
+        .sep{border:none;border-top:1px solid var(--bd);margin:8px 0}
+        ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:var(--c3);border-radius:2px}
+    </style>
 </head>
-<body>
-    <header>
-        <h1>FinBoard v2</h1>
+<body data-theme="dark">
+    <header class="H">
+        <div class="Lo"><div class="Lm">₪</div><span class="Ln">FinBoard</span><span class="badge badge-new" style="font-size:6px">v2</span><div class="sd sd-off" id="sD"></div></div>
+        <div class="Ha"><span class="ui" id="uI"></span><button class="B" id="aB" onclick="togA()">התחבר</button></div>
     </header>
-    <main>
-        <section>
-            <h2>Investment Tracking</h2>
-            <!-- Investment tracking component goes here -->
-        </section>
-        <section>
-            <h2>Income/Expense Categorization</h2>
-            <!-- Income and expense components go here -->
-        </section>
-        <section>
-            <h2>Israeli Tax Calculations</h2>
-            <!-- Tax calculation logic goes here -->
-        </section>
+    <nav class="N" id="nB" style="display:none">
+        <button class="on" data-t="dash">📊 דשבורד</button><button data-t="biz">🏢 עסק</button><button data-t="tax">🧾 מס</button><button data-t="deposits">💰 הפקדות</button><button data-t="entry">✏️ יתרות</button><button data-t="acct">🏦 חשבונות</button><button data-t="transfer">🔄 העברות</button><button data-t="set">⚙️ הגדרות</button>
+    </nav>
+    <main class="M">
+        <div class="P on" id="p-login">
+            <div class="login-screen">
+                <div style="font-size:40px">📊</div><h2>FinBoard v2</h2><p>דשבורד פיננסי אישי ועסקי<br>התחבר לסנכרון נתונים</p>
+                <button class="login-btn" onclick="signIn()"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px">התחבר עם Google</button>
+            </div>
+        </div>
+        <div class="P" id="p-dash"></div><div class="P" id="p-biz"></div><div class="P" id="p-tax"></div><div class="P" id="p-deposits"></div><div class="P" id="p-entry"></div><div class="P" id="p-acct"></div><div class="P" id="p-transfer"></div><div class="P" id="p-set"></div>
     </main>
-    <footer>
-        <p>&copy; 2026 FinBoard. All rights reserved.</p>
-    </footer>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            // Your Firebase configuration goes here
-        };
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
 
-        // TODO: Implement authentication and database interaction
-    </script>
+<script>
+    const $ = id => document.getElementById(id);
+    let auth, db, uid = null, unsub = null, S = null;
+    let curP = 'ytd', curT = 'dash', CH = [];
+
+    // --- Firebase Init (Compat) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyD6juU66Z90OOLKmWFC3eio_o1s9HyB1aU",
+        authDomain: "finboard-nech.firebaseapp.com",
+        projectId: "finboard-nech",
+        storageBucket: "finboard-nech.firebasestorage.app",
+        messagingSenderId: "713113119743",
+        appId: "1:713113119743:web:7f8af2dcec9c150c0ad5ca"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+
+    // --- Configuration Constants ---
+    const DEC=['עובר ושב','קרן כספית','פיקדון אישי','ביטוח ישיר - כללי','ביטוח ישיר - מניות','מיטב','מיטב טרייד','מנורה מבטחים - תגמולים ופיצויים','מנורה מבטחים - גמל להשקעה','הראל השתלמות','מנורה מבטחים השתלמות','פנסיה'];
+    const MRG={'מנורה מבטחים - תגמולים ופיצויים':'מנורה תגמולים','מנורה מבטחים - גמל להשקעה':'מנורה גמל','הראל השתלמות':'השתלמות','מנורה מבטחים השתלמות':'השתלמות'};
+    const SHN={'עובר ושב':'עו"ש','קרן כספית':'קרן כספית','פיקדון אישי':'פיקדון','ביטוח ישיר - כללי':'ביט.ישיר כללי','ביטוח ישיר - מניות':'ביט.ישיר מניות','מיטב':'מיטב','מיטב טרייד':'מיטב טרייד','מנורה תגמולים':'מנורה תגמולים','מנורה גמל':'מנורה גמל','השתלמות':'השתלמות','פנסיה':'פנסיה'};
+    const COL=['#e5a90a','#3fb950','#f85149','#58a6ff','#bc8cff','#f0883e','#3ddbd9','#f778ba','#79c0ff','#d2a8ff','#56d364'];
+    const VAT=.17, NEKUDA_VAL=2904;
+    const TXR={'קרן כספית':.25,'פיקדון אישי':.25,'ביטוח ישיר - כללי':.25,'ביטוח ישיר - מניות':.25,'מיטב':.25,'מיטב טרייד':.25,'מנורה תגמולים':.25,'מנורה גמל':.25,'השתלמות':0,'פנסיה':0,'עובר ושב':0};
+    const BRK=[{u:84120,r:.10},{u:120720,r:.14},{u:228000,r:.20},{u:301200,r:.31},{u:560280,r:.35},{u:721560,r:.47},{u:Infinity,r:.50}];
+
+    // --- Tax Helpers ---
+    function calcIT(taxable, nekudot){
+        let tax=0,prev=0;
+        for(const b of BRK){
+            const x=Math.min(taxable,b.u)-prev;
+            if(x<=0)break;
+            tax+=x*b.r; prev=b.u;
+        }
+        return Math.max(0, tax - (nekudot*NEKUDA_VAL));
+    }
+    function calcNI(income){
+        const avgWage=12536, lowCap=avgWage*0.6*12, maxCap=avgWage*5*12;
+        const inc=Math.min(income, maxCap);
+        const low=Math.min(inc, lowCap);
+        const high=Math.max(0, inc-lowCap);
+        return (low * 0.1019) + (high * 0.1783);
+    }
+
+    // --- State & Auth Logic ---
+    function defState(){
+        return {
+            cats:[...DEC], months:{}, incomes:[], expenses:[], transfers:[],
+            taxPayments:[], deposits:[], accounts:{}, theme:'dark',
+            taxConfig:{nekudot:2.25, gender:'male', pensionMonthly:0, hashMonthly:0}
+        };
+    }
+
+    auth.onAuthStateChanged(u => {
+        if (u) {
+            uid=u.uid; $('uI').textContent=u.displayName; $('sD').className='sd sd-on';
+            $('nB').style.display=''; $('p-login').classList.remove('on'); startSync();
+        } else {
+            uid=null; $('nB').style.display='none'; $('p-login').classList.add('on');
+            if(unsub) unsub();
+        }
+    });
+
+    function startSync(){
+        unsub = db.collection('users').doc(uid).collection('data').doc('main').onSnapshot(s => {
+            S = s.exists ? s.data() : defState();
+            renderCur();
+        });
+    }
+
+    async function save(){ if(uid && S) await db.collection('users').doc(uid).collection('data').doc('main').set(JSON.parse(JSON.stringify(S))); }
+
+    // --- Utility Functions ---
+    const fmt = n => '₪' + Math.round(n||0).toLocaleString();
+    const ks = () => Object.keys(S.months||{}).sort();
+    const dcs = () => { let s=new Set(),o=[]; S.cats.forEach(c=>{ let d=MRG[c]||c; if(!s.has(d)){s.add(d);o.push(d)}}); return o; };
+    const toD = m => { let d={}; dcs().forEach(c=>d[c]=0); S.cats.forEach(c=>{ let dc=MRG[c]||c; d[dc]+=(m[c]||0)}); return d; };
+
+    function renderCur(){
+        document.body.dataset.theme = S.theme || 'dark';
+        if(pages[curT]) pages[curT]();
+    }
+
+    // --- Pages Rendering ---
+    const pages = {
+        dash: () => {
+            const el=$('p-dash'); const K=ks();
+            if(!K.length) { el.innerHTML='<p style="text-align:center;padding:40px">הוסף נתונים ב"יתרות"</p>'; return; }
+            const lastK=K[K.length-1]; const d=toD(S.months[lastK]);
+            const tot=dcs().reduce((s,c)=>s+d[c],0);
+            el.innerHTML=`
+                <div class="CG">
+                    <div class="CD"><div class="CS" style="background:var(--ac)"></div><div class="CL">סך נכסים</div><div class="CV">${fmt(tot)}</div></div>
+                    <div class="CD"><div class="CS" style="background:var(--gn)"></div><div class="CL">הכנסות השנה</div><div class="CV">${fmt(S.incomes.reduce((s,i)=>s+i.amount,0))}</div></div>
+                </div>
+                <div class="CR f"><div class="CB"><div class="CH">מגמת נכסים</div><div class="CW t"><canvas id="c1"></canvas></div></div></div>
+            `;
+            const ctx=$('c1').getContext('2d');
+            if(CH[0]) CH[0].destroy();
+            CH[0] = new Chart(ctx, {
+                type:'line',
+                data:{
+                    labels: K.map(k=>k.split('-')[1]),
+                    datasets:[{data:K.map(k=>Object.values(toD(S.months[k])).reduce((a,b)=>a+b,0)), borderColor:'#e5a90a', fill:true}]
+                },
+                options:{responsive:true, maintainAspectRatio:false}
+            });
+        },
+        biz: () => {
+            $('p-biz').innerHTML = `
+                <div class="E"><div class="ET">💵 הכנסה</div><div class="FG">
+                    <div class="FR"><label class="FL">סכום</label><input type="number" class="FI" id="biA"></div>
+                    <div class="FR"><label class="FL">תיאור</label><input type="text" class="FI" id="biD"></div>
+                </div><button class="B Ba" style="margin-top:10px" onclick="addI()">+ הוסף</button></div>
+                <div class="E"><div class="ET">היסטוריה</div><div class="LI" id="biL"></div></div>
+            `;
+            const rIL = () => {
+                $('biL').innerHTML = S.incomes.slice(-10).reverse().map(i=>`<div class="LT"><span class="lt">${i.desc}</span><span class="lv up">${fmt(i.amount)}</span></div>`).join('');
+            };
+            window.addI = () => {
+                const a=+$('biA').value, d=$('biD').value; if(!a) return;
+                S.incomes.push({amount:a, desc:d, id:Date.now()}); save(); pages.biz();
+            };
+            rIL();
+        },
+        tax: () => {
+            const yr=new Date().getFullYear();
+            const inc=S.incomes.reduce((s,i)=>s+i.amount,0);
+            const incNoVat=inc/(1+VAT);
+            const it=calcIT(incNoVat, S.taxConfig.nekudot);
+            const ni=calcNI(incNoVat);
+            $('p-tax').innerHTML = `
+                <div class="TX">
+                    <div class="TXC"><h4>📋 מס הכנסה (הערכה 2026)</h4>
+                        <div class="TXR"><span>הכנסה לפני מע"מ</span><span>${fmt(incNoVat)}</span></div>
+                        <div class="TXR"><span>מס הכנסה (אחרי נק"ז)</span><span class="dn">${fmt(it)}</span></div>
+                        <div class="TXR"><span>ביטוח לאומי</span><span class="dn">${fmt(ni)}</span></div>
+                        <hr class="sep">
+                        <div class="TXR"><span>נטו סופי</span><span class="up">${fmt(incNoVat-it-ni)}</span></div>
+                    </div>
+                </div>
+            `;
+        },
+        entry: () => {
+            const K=ks();
+            $('p-entry').innerHTML = `
+                <div class="E"><div class="ET">✏️ עדכון יתרות</div>
+                <input type="month" class="FI" id="eN" style="margin-bottom:10px">
+                <button class="B" onclick="addMo()">+ חודש חדש</button>
+                <div id="eF" class="FG" style="margin-top:15px"></div>
+                <button class="B Ba" style="margin-top:15px" onclick="svMo()">💾 שמור הכל</button></div>
+            `;
+            window.addMo = () => { const v=$('eN').value; if(v){ S.months[v]={}; save(); pages.entry(); } };
+            window.svMo = () => {
+                const k=K[K.length-1]; if(!k) return;
+                document.querySelectorAll('#eF input').forEach(i=>S.months[k][i.dataset.c]=+i.value);
+                save(); alert('נשמר');
+            };
+            if(K.length){
+                const k=K[K.length-1];
+                $('eF').innerHTML = S.cats.map(c=>`<div class="FR"><label class="FL">${c}</label><input type="number" class="FI" data-c="${c}" value="${S.months[k][c]||0}"></div>`).join('');
+            }
+        },
+        set: () => {
+            $('p-set').innerHTML = `<div class="E"><h3>הגדרות</h3><button class="B Bd" onclick="auth.signOut()">התנתק מהמערכת</button></div>`;
+        }
+    };
+
+    // --- Navigation ---
+    document.querySelectorAll('.N button').forEach(b => {
+        b.onclick = () => {
+            document.querySelectorAll('.N button').forEach(x=>x.classList.remove('on'));
+            document.querySelectorAll('.P').forEach(x=>x.classList.remove('on'));
+            b.classList.add('on');
+            const t=b.dataset.t; curT=t;
+            $('p-'+t).classList.add('on');
+            if(pages[t]) pages[t]();
+        };
+    });
+
+    function signIn(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function togA(){ uid ? auth.signOut() : signIn(); }
+</script>
 </body>
 </html>
